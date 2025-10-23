@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal Braun-inspired aesthetic */
+:root {
+  --accent: theme(colors.brand.400);
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  color: #111827; /* Darker text for better contrast */
+  background-color: #f9fafb; /* Light background */
+}
+
+/* Global text color fixes */
+* {
+  color: inherit;
+}
+
+/* Dark backgrounds need light text */
+.bg-slate-800, .bg-slate-900, .bg-gray-800, .bg-gray-900,
+[class*="bg-slate-8"], [class*="bg-slate-9"], [class*="bg-gray-8"], [class*="bg-gray-9"] {
+  color: #f9fafb !important;
+}
+
+/* Light backgrounds need dark text */
+.bg-white, .bg-gray-50, .bg-gray-100, .bg-slate-50, .bg-slate-100,
+[class*="bg-white"], [class*="bg-gray-5"], [class*="bg-gray-1"], [class*="bg-slate-5"], [class*="bg-slate-1"] {
+  color: #111827 !important;
+}
+
+/* Form elements */
+input, textarea, select, button {
+  color: #111827 !important;
+}
+
+/* Ensure buttons and interactive elements are readable */
+button, .button, [role="button"] {
+  color: #111827 !important;
+}
+
+/* Blue buttons should have white text */
+.bg-blue-500, .bg-blue-600, .bg-blue-700, 
+[class*="bg-blue-5"], [class*="bg-blue-6"], [class*="bg-blue-7"] {
+  color: #ffffff !important;
+}
+
+/* Text utility classes */
+.text-white { color: #ffffff !important; }
+.text-black { color: #000000 !important; }
+.text-gray-900 { color: #111827 !important; }
+.text-gray-800 { color: #1f2937 !important; }
+.text-gray-700 { color: #374151 !important; }
+
+/* Cards and panels */
+.card, .panel, [class*="rounded"], [class*="shadow"] {
+  color: #111827;
+}
+
+/* Override any Tailwind defaults that are causing issues */
+div, span, p, h1, h2, h3, h4, h5, h6, li, td, th {
+  color: inherit;
+}
+
+/* Table and patient search results fix */
+table, tbody, tr, td, th {
+  color: #111827 !important;
+}
+
+/* Patient search results specifically */
+.patient-row, .patient-table, .search-results {
+  color: #111827 !important;
+  background-color: transparent !important;
+}
+
+/* Any clickable rows */
+tr:hover, .hover\:bg-gray-50:hover {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+}
+
+/* Table headers */
+thead th, .table-header {
+  color: #374151 !important;
+  font-weight: 600;
+}
+
+/* Make sure all table content is visible */
+table * {
+  color: #111827 !important;
+}
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #1d2430; }
+::-webkit-scrollbar-thumb { background: #3a4b5e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4f6d87; }

@@ -1,0 +1,106 @@
+# ModernVista Docker Compose
+# Orchestrates frontend + backend + connects to existing VistA Docker
+version: '3.8'
+
+services:
+  # ModernVista Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: modernvista-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - VISTA_HOST=host.docker.internal  # Connect to VistA on host
+      - VISTA_PORT=9430
+      - JWT_SECRET=${JWT_SECRET:-production-secret-change-me}
+      - LOG_LEVEL=info
+    volumes:
+      - backend_logs:/app/logs
+    networks:
+      - modernvista-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Allow access to host VistA
+
+  # ModernVista Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: modernvista-frontend  
+    ports:
+      - "3000:3000"
+    networks:
+      - modernvista-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # Optional: Nginx reverse proxy (for production)
+  proxy:
+    image: nginx:alpine
+    container_name: modernvista-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/ssl:/etc/ssl/certs:ro  # For HTTPS certificates
+    networks:
+      - modernvista-network
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    profiles:
+      - production  # Only start with --profile production
+
+networks:
+  modernvista-network:
+    driver: bridge
+    name: modernvista-net
+
+volumes:
+  backend_logs:
+    name: modernvista-backend-logs
+
+# ============================================================================
+# USAGE EXAMPLES:
+#
+# Development (no proxy):
+#   docker-compose up -d
+#
+# Production (with proxy):  
+#   docker-compose --profile production up -d
+#
+# Build and start:
+#   docker-compose up --build -d
+#
+# View logs:
+#   docker-compose logs -f backend
+#   docker-compose logs -f frontend
+#
+# Stop everything:
+#   docker-compose down
+#
+# REQUIREMENTS:
+# - Existing VistA Docker container running on host port 9430
+# - Set JWT_SECRET environment variable for production
+# ============================================================================

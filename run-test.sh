@@ -1,0 +1,1 @@
+cd "/media/frasod/4T NVMe/ModernVista/backend" && chmod +x test-vista-docker.js && node test-vista-docker.js

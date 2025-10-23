@@ -1,0 +1,23 @@
+
+> modernvista-backend@0.1.0 dev
+> nodemon --exec "ts-node -r tsconfig-paths/register" src/index.ts
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): src/**/*[39m
+[33m[nodemon] watching extensions: ts,js,json[39m
+[32m[nodemon] starting `ts-node -r tsconfig-paths/register src/index.ts`[39m
+2025-10-22 21:25:02 [[32minfo[39m]: [32m🚀 ModernVista Backend started[39m
+2025-10-22 21:25:02 [[32minfo[39m]: [32mPort: 3001[39m
+2025-10-22 21:25:02 [[32minfo[39m]: [32mEnv: development[39m
+2025-10-22 21:25:02 [[32minfo[39m]: [32mHealth: http://localhost:3001/health[39m
+2025-10-22 21:25:02 [[32minfo[39m]: [32mAPI Root: http://localhost:3001/api/v1[39m
+[ModernVista] Startup complete in 2 ms
+2025-10-22 21:25:02 [[32minfo[39m]: [32mIncoming Request[39m
+2025-10-22 21:25:02 [[32minfo[39m]: [32mRequest Completed[39m
+2025-10-22 21:32:41 [[32minfo[39m]: [32mIncoming Request[39m
+2025-10-22 21:32:41 [[32minfo[39m]: [32mRequest Completed[39m
+2025-10-22 21:32:41 [[32minfo[39m]: [32mIncoming Request[39m
+2025-10-22 21:32:41 [[32minfo[39m]: [32mRequest Completed[39m
+Killed
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

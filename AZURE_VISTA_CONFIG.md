@@ -1,0 +1,206 @@
+# Azure VistA Container Configuration
+
+> **Date Configured**: October 22, 2025  
+> **Deployment Type**: Azure Container Instance (ACI)  
+> **Environment**: Development / Demo
+
+---
+
+## 🌐 Azure VistA Instance Details
+
+| Setting | Value |
+|---------|-------|
+| **Host (FQDN)** | `vista-demo-frasod-832.eastus.azurecontainer.io` |
+| **RPC Broker Port** | `9430` |
+| **YottaDB GUI** | http://vista-demo-frasod-832.eastus.azurecontainer.io:8089 |
+| **Region** | East US |
+| **Access Code** | `<ACCESS_CODE>` (see secure storage) |
+| **Verify Code** | `<VERIFY_CODE>` (see secure storage) |
+| **Division** | Default/first (if prompted) |
+
+---
+
+## 🔧 Configure ModernVista Backend
+
+### Step 1: Update Backend Environment Variables
+
+Edit your `backend/.env` file (copy from `.env.example` if needed):
+
+```bash
+# VistA Connection - Azure ACI
+VISTA_HOST=vista-demo-frasod-832.eastus.azurecontainer.io
+VISTA_PORT=9430
+VISTA_ACCESS_CODE=<your-access-code>
+VISTA_VERIFY_CODE=<your-verify-code>
+
+# Optional: Enable experimental broker mode
+VISTA_BROKER_EXPERIMENTAL=true
+VISTA_CONTEXT="OR CPRS GUI CHART"
+VISTA_BROKER_TIMEOUT_MS=5000
+VISTA_BROKER_PHASE3_ENABLE=true
+```
+
+### Step 2: Test Connection
+
+```bash
+cd backend
+npm run dev
+```
+
+Then test the connection:
+```bash
+# Health check
+curl http://localhost:3001/api/v1/health
+
+# Patient search (if auth working)
+curl http://localhost:3001/api/v1/patients-search?q=SMITH
+```
+
+---
+
+## 📋 Container Management Commands
+
+```bash
+# Open container terminal
+./deploy-azure-aci.sh terminal
+
+# Stop billing when done (IMPORTANT!)
+./deploy-azure-aci.sh delete
+
+# Check container status
+./deploy-azure-aci.sh status  # (if supported)
+```
+
+---
+
+## 🔐 Security Notes
+
+### DO NOT commit credentials to git!
+
+1. ✅ Store access/verify codes in `backend/.env` (already in `.gitignore`)
+2. ✅ Use environment variables for CI/CD
+3. ✅ Rotate codes periodically
+4. ❌ Never hardcode credentials in source files
+5. ❌ Never log access/verify codes
+
+### For Team Sharing
+
+If you need to share this instance with collaborators:
+- Share the FQDN and port via secure channel (password manager, encrypted message)
+- Each developer should have their own VistA user credentials
+- Document in team wiki, not in git
+
+---
+
+## 🌍 Network Considerations
+
+### Firewall / NSG Rules
+This ACI instance appears to have public endpoints exposed:
+- Port 9430 (RPC Broker) - for CPRS/ModernVista
+- Port 8089 (YottaDB GUI) - for database management
+
+### Latency Expectations
+| Source | Expected Latency |
+|--------|------------------|
+| Local (same Azure region) | 1-5ms |
+| Remote US East Coast | 10-50ms |
+| Remote International | 100-300ms |
+
+ModernVista should handle these latencies gracefully with:
+- Connection pooling
+- Timeout configurations (5000ms default)
+- Retry logic (when safe)
+
+---
+
+## 🧪 Testing Checklist
+
+- [ ] Backend can connect to Azure VistA RPC port
+- [ ] Access/Verify codes authenticate successfully
+- [ ] Patient search returns real data
+- [ ] Labs/Meds/Vitals endpoints work
+- [ ] Latency acceptable (< 2s for most RPCs)
+- [ ] Frontend can reach backend + Azure VistA
+- [ ] No PHI in logs (validate log files)
+
+---
+
+## 📊 Cost Management
+
+**IMPORTANT**: Azure Container Instances bill by uptime!
+
+| Action | Impact |
+|--------|--------|
+| Running | ~$0.01-0.05/hour (estimate) |
+| Stopped | $0 |
+| Deleted | $0 |
+
+**Best Practice**: 
+```bash
+# At end of each dev session:
+./deploy-azure-aci.sh delete
+
+# Next session:
+./deploy-azure-aci.sh create  # (or whatever your create command is)
+```
+
+---
+
+## 🔄 Migration from Local Docker
+
+### What Changed
+| Aspect | Local Docker | Azure ACI |
+|--------|-------------|-----------|
+| Host | `localhost` | `vista-demo-frasod-832.eastus.azurecontainer.io` |
+| Network | Local only | Internet-accessible |
+| Persistence | Container volumes | Likely ephemeral (verify!) |
+| Billing | $0 | Pay-per-use |
+
+### Data Persistence Warning ⚠️
+Verify if your ACI deployment uses persistent volumes!
+- If ephemeral: data lost on container restart
+- If persistent: data survives across restarts
+- Check: `./deploy-azure-aci.sh` script or Azure portal
+
+---
+
+## 🐛 Troubleshooting
+
+### Connection Refused
+```bash
+# Test port accessibility
+nc -zv vista-demo-frasod-832.eastus.azurecontainer.io 9430
+
+# Or with curl (will timeout but shows if reachable)
+curl -v telnet://vista-demo-frasod-832.eastus.azurecontainer.io:9430
+```
+
+### Auth Failures
+- Verify access/verify codes in `.env`
+- Check if user is active in VistA
+- Review broker logs: `./deploy-azure-aci.sh terminal` then check log files
+
+### Timeout Issues
+- Increase `VISTA_BROKER_TIMEOUT_MS` in `.env`
+- Check network latency: `ping vista-demo-frasod-832.eastus.azurecontainer.io`
+- Verify Azure NSG rules allow port 9430
+
+### Data Not Showing
+- Confirm patient records exist: use YottaDB GUI or terminal
+- Check RPC framing: enable `VISTA_BROKER_CAPTURE=true` and review `/api/v1/admin/broker/capture`
+- Validate context: ensure `VISTA_CONTEXT="OR CPRS GUI CHART"` is set
+
+---
+
+## 📚 Related Documentation
+
+- [ModernVista README](./README.md) - Main project documentation
+- [Quickstart Guide](./QUICKSTART.md) - Fast setup instructions
+- [RPC Implementation](./VISTA_RPC_IMPLEMENTATION.md) - Real RPC details
+- [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Full dev workflow
+
+---
+
+**Last Updated**: October 22, 2025  
+**Maintainer**: Development Team  
+**Status**: Active (remember to delete when done!)

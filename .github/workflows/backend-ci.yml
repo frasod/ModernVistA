@@ -1,0 +1,39 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package.json
+      - name: Install deps
+        run: npm ci
+      - name: Lint (if configured)
+        run: |
+          if [ -f package.json ] && grep -q '"lint"' package.json; then npm run lint || true; fi
+      - name: Run tests
+        env:
+          ADMIN_METRICS_ENABLE: 'true'
+        run: npm test -- --ci --reporters=default --reporters=junit --outputFile=junit.xml || npm test
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/junit.xml
+          if-no-files-found: ignore
