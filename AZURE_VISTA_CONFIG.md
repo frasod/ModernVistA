@@ -22,8 +22,9 @@
 - ✅ **Dynamic Hostname Handling**: Validates connectivity, adapts to Azure FQDN changes
 - ✅ **Resilient Sessions**: Handles container restarts and network transients
 - ✅ **Modern Protocol**: Implements cloud-adapted RPC handshake
+- ✅ **Universal Compatibility**: Should also work with traditional on-premise VistA (not yet tested)
 
-**Bottom Line**: VAN MDWS is the **only viable modern interface** for cloud-deployed VistA instances.
+**Bottom Line**: VAN MDWS is the **only viable modern interface** for cloud-deployed VistA instances. It may also be more compatible than CPRS by supporting both traditional and cloud deployments.
 
 ---
 

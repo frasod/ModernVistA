@@ -142,6 +142,23 @@ Mock: false
 2. **Unique Value Proposition**: Only viable modern interface for cloud-deployed VistA
 3. **Design Vindication**: Direct RPC implementation decision proven correct
 
+### VAN MDWS Compatibility Matrix
+
+| VistA Deployment | CPRS Desktop | VAN MDWS |
+|------------------|--------------|----------|
+| **Traditional On-Premise (VA)** | ✅ Works | ✅ Should work* |
+| **Azure Container Instance** | ❌ Fails | ✅ Verified working |
+| **Docker Local** | ✅ Works | ✅ Verified working |
+| **Other Cloud Providers** | ❌ Likely fails | ✅ Should work* |
+
+**\*Note**: VAN MDWS compatibility with traditional on-premise VA VistA installations has **not been tested yet**. However, the architecture suggests it should work because:
+- Implements standard RPC Broker protocol
+- Adds cloud resilience without breaking traditional flows
+- No cloud-specific dependencies in core RPC logic
+- Designed to adapt to both static and dynamic hostnames
+
+**VAN MDWS may actually be MORE compatible than CPRS** by supporting both traditional on-premise AND modern cloud deployments. Testing with traditional VA installations is needed to confirm.
+
 ### For VistA Community
 1. **Cloud Migration Path**: Organizations moving VistA to cloud need solutions like ModernVista
 2. **Protocol Documentation**: Cloud VistA RPC adaptations should be formally documented

@@ -62,6 +62,17 @@ The legacy CPRS RPC Broker cannot connect to Azure Container Instance deployment
 
 **Result**: CPRS simply won't work with cloud-deployed VistA. VAN MDWS is purpose-built for this environment.
 
+#### VAN MDWS Compatibility
+
+| VistA Deployment | CPRS Desktop | VAN MDWS Status |
+|------------------|--------------|-----------------|
+| **Traditional On-Premise (VA)** | ✅ Works | ✅ Should work* |
+| **Azure Container Instance** | ❌ Fails | ✅ **Verified working** |
+| **Docker Local** | ✅ Works | ✅ **Verified working** |
+| **Other Cloud Providers** | ❌ Likely fails | ✅ Should work* |
+
+**\*Not yet tested**, but architecture suggests VAN MDWS should work with traditional VA installations because it implements standard RPC protocol while adding cloud resilience.
+
 #### What is MDWS?
 **MDWS was actually a really clever piece of work!** It's a SOAP/REST web services layer created to give web applications standardized access to VistA data without needing to understand the underlying RPC protocol. MDWS provided:
 - **Clean API abstraction** - Web developers didn't need to know VistA internals
