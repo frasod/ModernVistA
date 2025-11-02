@@ -3,6 +3,7 @@ import { asyncHandler } from '../core/middleware/errorHandler';
 import { patientsRouter } from './patients';
 import { config } from '../config/config';
 import { VistaBrokerSession } from '../vista/broker/session';
+import { logger } from '../config/logger';
 // Import package metadata for dynamic version reporting (tsconfig enables resolveJsonModule)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - json import typing inference
@@ -221,11 +222,36 @@ router.use('/patients', patientsRouter);
 // Experimental structured patient search (broker-backed)
 router.get('/patients-search', asyncHandler(async (req, res) => {
   const term = (req.query.q as string) || '';
-  const session = new VistaBrokerSession();
-  const rpc = 'ORWPT LIST';
-  const result = await session.call(rpc, [term, '20']);
-  if (!result.ok) return res.status(502).json({ ok: false, error: 'BROKER_CALL_FAILED', raw: result.lines });
-  res.json({ schemaVersion: 1, ok: true, rpcName: rpc, term, patients: result.structured?.patients || [], issues: result.structured?.issues || [], raw: result.lines, mock: result.mock });
+  try {
+    const session = new VistaBrokerSession();
+    const rpc = 'ORWPT LIST';
+    const result = await session.call(rpc, [term, '20']);
+    if (!result.ok) {
+      logger.error('[API] Patient search broker call failed', { rpc, term, result });
+      return res.status(502).json({ ok: false, error: 'BROKER_CALL_FAILED', raw: result.lines });
+    }
+    res.json({ 
+      schemaVersion: 1, 
+      ok: true, 
+      rpcName: rpc, 
+      term, 
+      patients: result.structured?.patients || [], 
+      issues: result.structured?.issues || [], 
+      raw: result.lines, 
+      mock: result.mock 
+    });
+  } catch (error: any) {
+    logger.error('[API] Patient search exception', { 
+      error: error.message, 
+      stack: error.stack,
+      term 
+    });
+    res.status(500).json({ 
+      ok: false, 
+      error: error.message || 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
 }));
 
 // Real VistA RPC clinical data endpoints

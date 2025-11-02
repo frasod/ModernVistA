@@ -94,7 +94,48 @@ echo -e "${GREEN}✅ Dependencies ready${NC}"
 echo -e "${BLUE}[4/4]${NC} Starting ModernVista..."
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}🚀 Launching ModernVista with Azure VistA!${NC}"
+#!/bin/bash
+# Smart launcher - checks Azure hostname before starting
+
+cd "/media/frasod/4T NVMe/ModernVista"
+
+echo "🔍 Checking Azure VistA connection..."
+
+# Get current hostname from .env
+CONFIGURED_HOST=$(grep "VISTA_HOST=" backend/.env | cut -d= -f2)
+
+if [[ $CONFIGURED_HOST == *"azurecontainer.io"* ]]; then
+  echo "📍 Configured: $CONFIGURED_HOST"
+  
+  # Test if it resolves
+  if timeout 3 bash -c "cat < /dev/null > /dev/tcp/$CONFIGURED_HOST/9430" 2>/dev/null; then
+    echo "✅ Azure VistA is reachable"
+  else
+    echo ""
+    echo "⚠️  WARNING: Cannot reach $CONFIGURED_HOST"
+    echo ""
+    echo "� Azure Container Instance hostnames can change when containers restart!"
+    echo ""
+    echo "To check your current Azure hostname, run:"
+    echo "  az container show -n vista-demo -g <your-resource-group> \\"
+    echo "    --query \"{fqdn:ipAddress.fqdn,status:instanceView.state}\" -o json"
+    echo ""
+    echo "Then run: ./fix-azure-hostname.sh <new-hostname>"
+    echo ""
+    read -p "Continue anyway with mock data? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Cancelled. Fix hostname first."
+      exit 1
+    fi
+  fi
+else
+  echo "📍 Using: $CONFIGURED_HOST (local or non-Azure)"
+fi
+
+echo ""
+echo "🚀 Starting ModernVista..."
+echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
 echo ""
 echo "Frontend will open at: http://localhost:3000"

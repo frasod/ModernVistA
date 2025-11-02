@@ -45,30 +45,45 @@ Your Existing VistA Docker Container    →    ModernVista (AI-Enhanced Interfac
 - **Technology**: React frontend + Node.js backend
 - **Safety**: Read-only by default, can't break your VistA data
 
-## API Architecture: Bypassing MDWS
+## API Architecture: Direct RPC vs MDWS
 
-A key architectural decision in ModernVista is to bypass legacy middleware like MDWS (Medical Domain Web Services) and connect directly to VistA's core communication layer.
+ModernVista's backend API layer (which we call **VAN MDWS** in honor of Van Curtis, a VistA pioneer) connects directly to VistA's RPC Broker protocol rather than using the original MDWS (Medical Domain Web Services) as an intermediary.
 
-#### The Legacy Way: MDWS
-Older web-based VistA applications often relied on MDWS, a SOAP-based web service layer that acted as a middleman between the web application and VistA. This added complexity, potential performance overhead, and another system to maintain.
+#### What is MDWS?
+**MDWS was actually a really clever piece of work!** It's a SOAP/REST web services layer created to give web applications standardized access to VistA data without needing to understand the underlying RPC protocol. MDWS provided:
+- **Clean API abstraction** - Web developers didn't need to know VistA internals
+- **Security layer** - Centralized authentication and authorization
+- **Standardized data formats** - Consistent SOAP/REST responses
+- **Multi-VistA support** - Could connect to multiple VistA instances
 
-#### The ModernVista Way: Direct RPC Communication
-ModernVista uses a more direct and robust approach by implementing a modern RESTful API that communicates directly with VistA's underlying **RPC Broker** protocol. This is the same battle-tested communication method used by CPRS, VistA's primary desktop client.
+**Important**: MDWS is **not** part of CPRS (the Delphi desktop application). It's a separate web services middleware project developed by the VA to enable web-based VistA applications.
+
+#### Why VAN MDWS (ModernVista Backend) Doesn't Use Original MDWS
+While the original MDWS is a solid solution, **VAN MDWS** (our backend) takes a different approach by implementing its own RPC client:
+
+1.  **Performance**: Direct RPC connection eliminates the middleware hop
+2.  **Flexibility**: Access to any VistA RPC, not just those exposed by MDWS
+3.  **Modern Stack**: Native Node.js/TypeScript implementation vs running a separate MDWS server
+4.  **Learning Opportunity**: Understanding the RPC protocol deeply enables better troubleshooting
+
+**Architecture Comparison:**
 
 ```
-+-----------------+      +---------------------+      +----------------------------+      +--------------------+
-| React Frontend  | ---> | ModernVista Backend | ---> | VistA RPC Broker (Port 9430) | ---> | VistA Mumps Database |
-| (Web Browser)   |      | (Node.js/Express)   |      | (Direct TCP Connection)    |      | (Your Docker/VistA)  |
-+-----------------+      +---------------------+      +----------------------------+      +--------------------+
+Original MDWS Approach:
+Browser → MDWS Server (SOAP/REST) → VistA RPC Broker → VistA Database
+
+VAN MDWS Approach (ModernVista):
+Browser → VAN MDWS Backend (REST) → VistA RPC Broker → VistA Database
+         (Node.js w/ direct RPC client)
 ```
 
-#### Advantages of this Architecture:
-1.  **Performance**: By removing the middleware layer, the connection is faster and more efficient.
-2.  **Control & Flexibility**: We have full control over the data exchange and can access any RPC available in VistA, not just those exposed by MDWS.
-3.  **Simplicity**: The architecture is simpler, with fewer points of failure.
-4.  **Modern Standards**: The backend exposes a clean, RESTful JSON API, which is the standard for modern web development, making it easier for other services to integrate with it.
+**Respect to Original MDWS**: It pioneered web access to VistA and enabled many modern VistA applications. VAN MDWS (our approach) is just a different architectural choice, not better or worse - just optimized for our specific use case of a single-page React application with real-time requirements.
 
-In essence, ModernVista replaces the outdated MDWS with its own modern, high-performance API gateway, providing a more stable and extensible foundation.
+**When to use Original MDWS instead**: If you need multi-VistA federation, don't want to implement RPC protocol details, or are building multiple web apps that can share the MDWS infrastructure.
+
+---
+
+**VAN MDWS**: Named in honor of **Van Curtis**, whose pioneering work in VistA web services and open-source healthcare interoperability helped pave the way for modern VistA applications like this one. 🙏
 
 ## Philosophy
 
