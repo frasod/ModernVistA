@@ -222,20 +222,47 @@ router.use('/patients', patientsRouter);
 // Experimental structured patient search (broker-backed)
 router.get('/patients-search', asyncHandler(async (req, res) => {
   const term = (req.query.q as string) || '';
+  
+  // Detect VA-style search: Last initial + last 4 SSN (e.g., "S5463")
+  const vaPattern = /^([A-Z])(\d{4})$/i;
+  const vaMatch = term.match(vaPattern);
+  
+  let searchTerm = term;
+  let searchType: 'name' | 'va-format' = 'name';
+  
+  if (vaMatch) {
+    searchType = 'va-format';
+    // For VA format, search by last name starting with that letter
+    // VistA will return matches, then we filter by SSN last 4 client-side
+    searchTerm = vaMatch[1].toUpperCase();
+    logger.info('[API] VA-style search detected', { term, initial: vaMatch[1], last4: vaMatch[2] });
+  }
+  
   try {
     const session = new VistaBrokerSession();
     const rpc = 'ORWPT LIST';
-    const result = await session.call(rpc, [term, '20']);
+    const result = await session.call(rpc, [searchTerm, '50']); // Increase limit for VA format
     if (!result.ok) {
       logger.error('[API] Patient search broker call failed', { rpc, term, result });
       return res.status(502).json({ ok: false, error: 'BROKER_CALL_FAILED', raw: result.lines });
     }
+    
+    let patients = result.structured?.patients || [];
+    
+    // If VA format, filter by SSN last 4
+    if (searchType === 'va-format' && vaMatch) {
+      const last4 = vaMatch[2];
+      patients = patients.filter((p: any) => p.ssnLast4 === last4);
+      logger.info('[API] VA format filtering', { original: result.structured?.patients?.length, filtered: patients.length, last4 });
+    }
+    
     res.json({ 
       schemaVersion: 1, 
       ok: true, 
       rpcName: rpc, 
       term, 
-      patients: result.structured?.patients || [], 
+      searchType,
+      patients, 
       issues: result.structured?.issues || [], 
       raw: result.lines, 
       mock: result.mock 

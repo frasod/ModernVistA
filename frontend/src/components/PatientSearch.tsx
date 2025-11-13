@@ -19,9 +19,12 @@ export const PatientSearch: React.FC<PatientSearchProps> = ({ onSelect, selected
         <input
           value={term}
           onChange={e => setTerm(e.target.value)}
-          placeholder="Type at least 2 characters..."
+          placeholder="Name (DOE), First,Last (DOE,JOHN), or VA format (D1234)"
           className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-400"
         />
+        <div className="text-xs text-gray-500 mt-1">
+          Supports: Last name • First,Last • VA format (Last initial + last 4 SSN, e.g., "S5463")
+        </div>
       </div>
       {error && <div className="text-sm text-red-600">{error}</div>}
       {offline && <div className="text-xs text-yellow-700">Offline mode (showing cached/mock data)</div>}
@@ -35,7 +38,7 @@ export const PatientSearch: React.FC<PatientSearchProps> = ({ onSelect, selected
               <th className="px-2 py-1 text-left">Name</th>
               <th className="px-2 py-1 text-left">Gender</th>
               <th className="px-2 py-1 text-left">DOB</th>
-              <th className="px-2 py-1 text-left">ICN</th>
+              <th className="px-2 py-1 text-left">SSN/ICN</th>
             </tr>
           </thead>
           <tbody>
@@ -58,12 +61,13 @@ export const PatientSearch: React.FC<PatientSearchProps> = ({ onSelect, selected
               <th className="px-2 py-1 text-left">Name</th>
               <th className="px-2 py-1 text-left">Gender</th>
               <th className="px-2 py-1 text-left">DOB</th>
-              <th className="px-2 py-1 text-left">ICN</th>
+              <th className="px-2 py-1 text-left">SSN/ICN</th>
             </tr>
           </thead>
           <tbody>
             {patients.map(p => {
               const selected = p.id === selectedId;
+              const displaySSN = p.ssnLast4 ? `***-**-${p.ssnLast4}` : (p.icn || '-');
               return (
                 <tr
                   key={p.id}
@@ -77,7 +81,7 @@ export const PatientSearch: React.FC<PatientSearchProps> = ({ onSelect, selected
                   <td className="px-2 py-1">{p.lastName && p.firstName ? `${p.lastName}, ${p.firstName}` : p.name}</td>
                   <td className="px-2 py-1">{p.gender || '-'}</td>
                   <td className="px-2 py-1">{p.dobIso || p.dob || '-'}</td>
-                  <td className="px-2 py-1">{p.icn || '-'}</td>
+                  <td className="px-2 py-1 font-mono text-xs">{displaySSN}</td>
                 </tr>
               );
             })}

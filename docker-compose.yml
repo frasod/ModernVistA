@@ -14,7 +14,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - VISTA_HOST=host.docker.internal  # Connect to VistA on host
+      - VISTA_HOST=vista-demo-frasod-637.eastus.azurecontainer.io
       - VISTA_PORT=9430
       - JWT_SECRET=${JWT_SECRET:-production-secret-change-me}
       - LOG_LEVEL=info
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     container_name: modernvista-frontend  
     ports:
-      - "3000:3000"
+      - "8080:3000"
     networks:
       - modernvista-network
     restart: unless-stopped

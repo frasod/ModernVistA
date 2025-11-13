@@ -15,6 +15,7 @@ export interface Patient {
   name: string;
   dob: string;
   ssn?: string;
+  ssnLast4?: string;  // Last 4 digits of SSN for display
   lastName?: string;
   firstName?: string;
   dobIso?: string;

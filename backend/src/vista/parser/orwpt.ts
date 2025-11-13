@@ -3,7 +3,9 @@ export interface OrwptPatient {
   name: string;       // LAST,FIRST
   lastName?: string;  // extracted last name
   firstName?: string; // extracted first name
-  icn?: string;       // optional future field
+  icn?: string;       // Integration Control Number
+  ssn?: string;       // Social Security Number (if available)
+  ssnLast4?: string;  // Last 4 of SSN for display
   gender?: string;    // M/F if available
   dob?: string;       // MM/DD/YYYY (original) normalized to ISO later
   dobIso?: string;    // ISO normalized date (YYYY-MM-DD) if valid
@@ -50,7 +52,7 @@ export function parseOrwptList(lines: string[]): OrwptParseResult {
       issues.push({ line, reason: 'INSUFFICIENT_FIELDS', index: idx });
       return;
     }
-    const [ien, name, icn, gender, dob] = parts;
+    const [ien, name, icn, gender, dob, ssn] = parts;
     if (!ien || !name) {
       issues.push({ line, reason: 'MISSING_CORE_FIELDS', index: idx });
       return;
@@ -63,7 +65,18 @@ export function parseOrwptList(lines: string[]): OrwptParseResult {
     } else {
       nameSplitFailed += 1;
     }
-    if (icn) patient.icn = icn;
+    if (icn) {
+      patient.icn = icn;
+      // Use ICN last 4 as proxy for SSN last 4 (for VA-style search)
+      if (icn.length >= 4) {
+        patient.ssnLast4 = icn.slice(-4);
+      }
+    }
+    // Handle SSN if present (field 6)
+    if (ssn && ssn.length >= 4) {
+      patient.ssn = ssn;
+      patient.ssnLast4 = ssn.slice(-4); // Override ICN if real SSN exists
+    }
     if (gender && /^[MF]$/i.test(gender)) {
       patient.gender = gender.toUpperCase();
     } else {
